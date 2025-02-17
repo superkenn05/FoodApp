@@ -3,13 +3,9 @@ import FoodItem from "./FoodItem";
 import Filter from "./Filter";
 import Search from "./Search";
 import styles from "./foodlist.module.css";
-import burger from "../img/Burger.jpg";
-import pizza from "../img/Pizza.jpg";
-import barq from "../img/barq.jpg";
-import stk from "../img/stk.jpg";
-import fries from "../img/fries.jpg";
 import Navbar from "./Navbar";
 import { useNavigate } from "react-router-dom";
+import foodData from "../Data/foodData"; // ✅ Use correct capitalization and path
 
 export default function FoodList() {
   const [sortOrder, setSortOrder] = useState("latest");
@@ -42,15 +38,7 @@ export default function FoodList() {
     navigate("/cart");
   };
 
-  const products = [
-    { name: "Barbecue Chicken", price: 8.0, image: barq, category: "meat" },
-    { name: "Margherita Pizza", price: 14.0, image: pizza, category: "pizza" },
-    { name: "Burger Beef", price: 12.0, image: burger, category: "burger" },
-    { name: "French Fries", price: 5.0, image: fries, category: "fries" },
-    { name: "Grilled Flank Steak", price: 14.0, image: stk, category: "steak" },
-  ];
-
-  const filteredProducts = products.filter((product) =>
+  const filteredProducts = foodData.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
