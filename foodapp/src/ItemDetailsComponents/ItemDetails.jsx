@@ -1,13 +1,22 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import styles from "./itemdetails.module.css";
-import foodData from "../Data/foodData"; // ✅ Use correct capitalization and path
-
+import foodData from "../Data/foodData";
+import Navbar from "../ItemComponents/Navbar";
+import ItemImage from "./ItemImage";
+import CartItemPrice from "../AddToCartComponents/CartItemPrice";
+import AddToCartButton from "../ItemComponents/AddToCartButton";
+import CartItemQuantity from "../AddToCartComponents/CartItemQuantity";
 
 export default function ItemDetails() {
-  const { name } = useParams(); // Get item name from URL
-  const navigate = useNavigate();
+  const { name } = useParams();
+  const [cartItems, setCartItems] = useState([]);
 
-  // Find the food item using the decoded name
+  useEffect(() => {
+    const storedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+    setCartItems(storedCart);
+  }, []);
+
   const food = foodData.find((item) => item.name === decodeURIComponent(name));
 
   if (!food) {
@@ -15,15 +24,21 @@ export default function ItemDetails() {
   }
 
   return (
-    <div className={styles.container}>
-      <button className={styles.backButton} onClick={() => navigate(-1)}>← Back</button>
-      <div className={styles.detailsCard}>
-        <img src={food.image} alt={food.name} className={styles.image} />
+    <div>
+      <Navbar cartCount={cartItems.length} />
+      <div className={styles.container}>
+        <ItemImage food={food} />
         <div className={styles.info}>
-          <h2 className={styles.name}>{food.name}</h2>
           <p className={styles.category}>{food.category}</p>
-          <p className={styles.price}>${food.price}</p>
-          <p className={styles.description}>Delicious {food.name} served fresh.</p>
+          <h2 className={styles.name}>{food.name}</h2>
+          <div className={styles.price} style={{ all: "unset" }}>
+            <CartItemPrice price={food.price} oldPrice={food.oldPrice} />
+          </div>
+          <p className={styles.description}>{food.description}</p>
+          <div className={styles.addcart}>
+            <CartItemQuantity />
+            <AddToCartButton />
+          </div>
         </div>
       </div>
     </div>

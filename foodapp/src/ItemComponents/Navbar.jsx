@@ -6,11 +6,11 @@ export default function Navbar({ cartCount }) {
   const navigate = useNavigate();
 
   const handleCartClick = () => {
-    navigate("/cart"); // ✅ Redirect to cart page
+    navigate("/cart"); 
   };
   return (
     <div className={styles.nav}>
-      🍔FoodAp
+      🍔FoodApp
       <div className={styles.cartContainer} onClick={handleCartClick}>
         <ShoppingCartOutlinedIcon className={styles.cartIcon} />
         {cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}

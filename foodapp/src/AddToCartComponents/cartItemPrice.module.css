@@ -16,9 +16,8 @@
   }
   
   .cartItemPrice {
-    font-size: 14px;
     font-weight: bold;
-    color: #e8e1e2;
+    color: #ff4757;
     flex: 2;
     
   }

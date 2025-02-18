@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./fooditem.module.css";
-import ShoppingBagIcon from "@mui/icons-material/ShoppingBagOutlined";
+import AddToCartButton from "./AddToCartButton"; // Import the button component
 
 export default function FoodItem({ food, addToCart }) {
   const navigate = useNavigate();
@@ -15,16 +15,7 @@ export default function FoodItem({ food, addToCart }) {
         <p className={styles.category}>{food.category}</p>
         <p className={styles.name}>{food.name}</p>
         <p className={styles.price}>${food.price}</p>
-        <button
-          className={styles.button}
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent navigation when clicking the button
-            addToCart(food);
-          }}
-        >
-          <ShoppingBagIcon className={styles.shopicon} fontSize="small" />
-          ADD TO CART
-        </button>
+        <AddToCartButton food={food} addToCart={addToCart} /> {/* Use the button component */}
       </div>
     </div>
   );
