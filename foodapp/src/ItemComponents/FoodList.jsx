@@ -18,7 +18,7 @@ export default function FoodList() {
   useEffect(
     () =>
       onSnapshot(collection(db, "foodData"), (snapshot) =>
-        setfood(snapshot.docs.map((doc) => doc.data()))
+        setfood(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
       ),
     []
   );
@@ -30,9 +30,7 @@ export default function FoodList() {
 
   const addToCart = (food) => {
     let cart = JSON.parse(localStorage.getItem("cartItems")) || [];
-
     const existingItemIndex = cart.findIndex((item) => item.name === food.name);
-
     if (existingItemIndex !== -1) {
       cart[existingItemIndex].quantity += 1;
     } else {
@@ -65,8 +63,8 @@ export default function FoodList() {
       <Search setSearchQuery={setSearchQuery} />
       <Filter setSortOrder={setSortOrder} />
       <div className={styles.container}>
-        {sortedProducts.map((food, index) => (
-          <FoodItem key={index} food={food} addToCart={addToCart} />
+        {sortedProducts.map((food) => (
+          <FoodItem key={food.id} food={food} addToCart={addToCart} />
         ))}
       </div>
     </div>
