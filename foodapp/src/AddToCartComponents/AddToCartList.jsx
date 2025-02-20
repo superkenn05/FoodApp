@@ -72,7 +72,7 @@ export default function BasicStack() {
               <p className={styles["cart-item-variation"]}>
                 Variations: {item.variation || "Default"}
               </p>
-              
+
               <CartItemPrice price={item.price} oldPrice={item.oldPrice} />
 
               <CartItemQuantity

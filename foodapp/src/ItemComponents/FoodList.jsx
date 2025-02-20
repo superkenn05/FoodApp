@@ -5,14 +5,23 @@ import Search from "./Search";
 import styles from "./foodlist.module.css";
 import Navbar from "./Navbar";
 import { useNavigate } from "react-router-dom";
-import foodData from "../Data/foodData"; // ✅ Use correct capitalization and path
+import db from "../firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 export default function FoodList() {
   const [sortOrder, setSortOrder] = useState("latest");
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItems, setCartItems] = useState([]);
-
+  const [food, setfood] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(
+    () =>
+      onSnapshot(collection(db, "foodData"), (snapshot) =>
+        setfood(snapshot.docs.map((doc) => doc.data()))
+      ),
+    []
+  );
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
@@ -38,7 +47,7 @@ export default function FoodList() {
     navigate("/cart");
   };
 
-  const filteredProducts = foodData.filter((product) =>
+  const filteredProducts = food.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

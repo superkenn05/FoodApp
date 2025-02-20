@@ -12,15 +12,14 @@ export default function SearchBar({ setSearchQuery }) {
 
   return (
     <div className={styles.searchContainer}>
-         <SearchIcon className={styles.searchIcon} />
+      <SearchIcon className={styles.searchIcon} />
       <input
         type="text"
         value={query}
         onChange={handleChange}
         placeholder="Search for food..."
         className={styles.searchInput}
-      >
-      </input>
+      ></input>
     </div>
   );
 }

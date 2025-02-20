@@ -6,7 +6,7 @@ export default function Navbar({ cartCount }) {
   const navigate = useNavigate();
 
   const handleCartClick = () => {
-    navigate("/cart"); 
+    navigate("/cart");
   };
   return (
     <div className={styles.nav}>

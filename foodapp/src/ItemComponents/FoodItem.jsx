@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./fooditem.module.css";
-import AddToCartButton from "./AddToCartButton"; // Import the button component
+import AddToCartButton from "./AddToCartButton";
 
 export default function FoodItem({ food, addToCart }) {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export default function FoodItem({ food, addToCart }) {
         <p className={styles.category}>{food.category}</p>
         <p className={styles.name}>{food.name}</p>
         <p className={styles.price}>${food.price}</p>
-        <AddToCartButton food={food} addToCart={addToCart} /> {/* Use the button component */}
+        <AddToCartButton food={food} addToCart={addToCart} />
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<FoodList />} />
         <Route path="/item-details/:name" element={<ItemDetails />} />
-        <Route path="/cart" element={<AddToCartList />} /> {/* ✅ Cart Page */}
+        <Route path="/cart" element={<AddToCartList />} /> 
       </Routes>
     </Router>
   );
