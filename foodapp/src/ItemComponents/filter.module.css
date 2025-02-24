@@ -2,9 +2,11 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  width: 188vh;
-  height: 10vh;
+  width: 100%;  
+  max-width: 1360px; 
+  padding: 10px;
 }
+
 
 .sortDropdown {
   padding: 8px;

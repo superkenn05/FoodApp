@@ -6,16 +6,22 @@
 
 .foodImage {
     position: relative;
-    width: 500px;
-    height: 300px;
+    width: 500px; /* Fixed width */
+    height: 300px; /* Fixed height */
     overflow: hidden;
+    background-color: #f0f0f0; /* Placeholder background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    border: 2px dashed #ccc; /* Para makita ang laki kahit walang image */
 }
 
 .foodImage img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 10px;
+    display: block;
 }
 
 .discountBadge {
@@ -34,6 +40,8 @@
     display: flex;
     gap: 10px;
     margin-top: 20px;
+    align-items: center;
+    align-self: center;
 }
 
 .foodGallery img {
@@ -42,8 +50,16 @@
     border-radius: 10px;
     cursor: pointer;
     transition: transform 0.3s ease;
+    background-color: #f0f0f0;
 }
 
 .foodGallery img:hover {
     transform: scale(1.1);
+}
+.foodImage::before {
+    content: "No Image Available";
+    position: absolute;
+    color: #888;
+    font-size: 16px;
+    font-weight: bold;
 }

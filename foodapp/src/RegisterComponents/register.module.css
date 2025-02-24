@@ -1,38 +1,41 @@
-.register{
-    align-content: center;
-    justify-content: center;
+.register {
     display: flex;
-    height: 100vh;
+    justify-content: center;
     align-items: center;
+    height: 100vh;
+    background-color: #121212; /* Optional: Background color */
 }
+
 .register h1 {
-    justify-content: center;
-    display: flex;
-    font-family:  Arial, sans-serif;
+    text-align: center;
+    font-family: Arial, sans-serif;
     color: #fff;
 }
 
 .register form {
     display: flex;
     flex-direction: column;
-    gap: 5px; 
+    gap: 20px; 
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 350px;
-    align-items: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px; 
     background-color: #1e1d1d;
+    align-items: center;
+    margin: auto;
 }
 
-.register form button {
-    margin-top: 10px;
+.registerButton {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
     width: 100%;
-    max-width: 200px; 
-    border-radius: 20px;
-    font-weight: bold;
 }
-.register p{
+
+.register p {
     color: #e6e1e1; 
-    font-family:  Arial, sans-serif;
-    
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    text-align: center;
 }

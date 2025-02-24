@@ -56,8 +56,9 @@ export default function BasicStack() {
   };
 
   return (
-    <div className={styles["cart-container"]}>
+    <div >
       <AddToCartNavbar />
+      <div className={styles["cart-container"]}>
       <Box sx={{ width: "100%" }}>
         {cartItems.length === 0 ? (
           <Item className={styles["cart-empty"]}>Your cart is empty.</Item>
@@ -90,6 +91,7 @@ export default function BasicStack() {
           ))
         )}
       </Box>
+    </div>
     </div>
   );
 }

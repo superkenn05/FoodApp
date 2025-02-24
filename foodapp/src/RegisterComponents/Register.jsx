@@ -1,191 +1,226 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Link from "@mui/material/Link";
-import { collection, doc, setDoc, query, where, getDocs } from "firebase/firestore";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  collection,
+  doc,
+  setDoc,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import db from "../firebase";
 import styles from "./register.module.css";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import Username from "./Username";
+import Email from "./Email";
+import Password from "./Password";
+import ConfirmPassword from "./ConfirmPassword";
+import Alert from "@mui/joy/Alert";
+import IconButton from "@mui/joy/IconButton";
+import Typography from "@mui/joy/Typography";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import WarningIcon from "@mui/icons-material/Warning";
+import ReportIcon from "@mui/icons-material/Report";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [alert, setAlert] = useState(null);
+
   const navigate = useNavigate();
+
+  const showAlert = (message, type) => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
 
     if (!username || !email || !password || !confirmPassword) {
-      alert("Please fill in all fields!");
+      showAlert("All fields are required!", "warning");
       return;
     }
     if (username.length < 3) {
-      alert("Username must be at least 3 characters long!");
+      showAlert("Username: 3+ chars required!", "danger");
       return;
     }
-
-    const passwordRegex =
-      /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      alert(
-        "Password must be at least 8 characters long, with 1 uppercase letter, 1 number, and 1 special character."
+    if (!email.includes("@") || !email.includes(".")) {
+      showAlert("Invalid email format!", "danger");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      showAlert(
+        "Password must contain at least one uppercase letter!",
+        "danger"
       );
       return;
     }
+    if (!/\d/.test(password)) {
+      showAlert("Password must contain at least one number!", "danger");
+      return;
+    }
+    if (!/[!@#$%^&*]/.test(password)) {
+      showAlert(
+        "Password must contain at least one special character (!@#$%^&*)!",
+        "danger"
+      );
+      return;
+    }
+    if (password.length < 8) {
+      showAlert("Password must be at least 8 characters!", "danger");
+      return;
+    }
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      showAlert("Passwords do not match!", "danger");
       return;
     }
 
     try {
       const usersRef = collection(db, "userInfo");
-      const usernameLower = username.toLowerCase();
-      const emailLower = email.toLowerCase();
 
-      // Check if username already exists
-      const usernameQuery = query(usersRef, where("username", "==", usernameLower));
-      const usernameSnapshot = await getDocs(usernameQuery);
-      if (!usernameSnapshot.empty) {
-        alert("Username already exists! Please choose another.");
+      const userQuery = query(
+        usersRef,
+        where("username", "==", username.toLowerCase()),
+        where("email", "==", email.toLowerCase())
+      );
+
+      const userSnapshot = await getDocs(userQuery);
+
+      let usernameExists = false;
+      let emailExists = false;
+
+      userSnapshot.forEach((doc) => {
+        const userData = doc.data();
+        if (userData.username === username.toLowerCase()) {
+          usernameExists = true;
+        }
+        if (userData.email === email.toLowerCase()) {
+          emailExists = true;
+        }
+      });
+
+      if (usernameExists) {
+        showAlert("Username already exists!", "danger");
+        return;
+      }
+      if (emailExists) {
+        showAlert("Email already exists!", "danger");
         return;
       }
 
       const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(auth, emailLower, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email.toLowerCase(),
+        password
+      );
       const user = userCredential.user;
 
-      // Store user details in Firestore without storing password
       await setDoc(doc(db, "userInfo", user.uid), {
-        username: usernameLower,
-        email: emailLower,
+        username: username.toLowerCase(),
+        email: email.toLowerCase(),
       });
 
-      alert("User registered successfully!");
-      navigate("/login");
+      showAlert("Registration successful!", "success");
+      setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
-      console.error("Error registering user:", error.message);
+      console.error("Error:", error.message);
       if (error.code === "auth/email-already-in-use") {
-        alert("Email is already in use. Try logging in instead.");
-      } else if (error.code === "auth/weak-password") {
-        alert("Password is too weak! Please use a stronger password.");
+        showAlert("Email already in use!", "danger");
       } else {
-        alert("An error occurred. Please try again.");
+        showAlert("Registration failed!", "danger");
       }
     }
   };
 
   return (
     <div className={styles.register}>
+      {/* Alert Box */}
+      {alert && (
+        <Alert
+          sx={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            backgroundColor:
+              alert.type === "success"
+                ? "#4CAF50"
+                : alert.type === "warning"
+                ? "#FF9407"
+                : "#F44336",
+            color: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0px 4px 10px rgba(0,0,0,0.3)",
+            minWidth: "280px",
+            display: "flex",
+            alignItems: "center",
+          }}
+          startDecorator={
+            alert.type === "success" ? (
+              <CheckCircleIcon />
+            ) : alert.type === "warning" ? (
+              <WarningIcon />
+            ) : (
+              <ReportIcon />
+            )
+          }
+          variant="solid"
+          color={alert.type}
+          endDecorator={
+            <IconButton onClick={() => setAlert(null)} sx={{ color: "#fff" }}>
+              <CloseRoundedIcon />
+            </IconButton>
+          }
+        >
+          <Typography level="body-sm">{alert.message}</Typography>
+        </Alert>
+      )}
+
+      {/* Form */}
       <Box component="form" onSubmit={handleSignUp}>
         <h1>Register</h1>
 
-        <TextField
-          label="Username"
-          variant="outlined"
-          required
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          sx={{
-            "& > :not(style)": { m: 1, width: "30ch" },
-            input: { color: "#fff" },
-            "& .MuiInputLabel-root": { color: "#fff" },
-            "& .MuiInputLabel-root.Mui-focused": { color: "#ff1a1a" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": { borderColor: "#fff" },
-              "&:hover fieldset": { borderColor: "#ff1a1a" },
-              "&.Mui-focused fieldset": { borderColor: "#ff1a1a" },
-            },
-          }}
-        />
-        <TextField
-          label="Email"
-          type="email"
-          variant="outlined"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          sx={{
-            "& > :not(style)": { m: 1, width: "30ch" },
-            input: { color: "#fff" },
-            "& .MuiInputLabel-root": { color: "#fff" },
-            "& .MuiInputLabel-root.Mui-focused": { color: "#ff1a1a" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": { borderColor: "#fff" },
-              "&:hover fieldset": { borderColor: "#ff1a1a" },
-              "&.Mui-focused fieldset": { borderColor: "#ff1a1a" },
-            },
-          }}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          variant="outlined"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          sx={{
-            "& > :not(style)": { m: 1, width: "30ch" },
-            input: { color: "#fff" },
-            "& .MuiInputLabel-root": { color: "#fff" },
-            "& .MuiInputLabel-root.Mui-focused": { color: "#ff1a1a" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": { borderColor: "#fff" },
-              "&:hover fieldset": { borderColor: "#ff1a1a" },
-              "&.Mui-focused fieldset": { borderColor: "#ff1a1a" },
-            },
-          }}
-        />
-        <TextField
-          label="Confirm Password"
-          type="password"
-          variant="outlined"
-          required
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          sx={{
-            "& > :not(style)": { m: 1, width: "30ch" },
-            input: { color: "#fff" },
-            "& .MuiInputLabel-root": { color: "#fff" },
-            "& .MuiInputLabel-root.Mui-focused": { color: "#ff1a1a" },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": { borderColor: "#fff" },
-              "&:hover fieldset": { borderColor: "#ff1a1a" },
-              "&.Mui-focused fieldset": { borderColor: "#ff1a1a" },
-            },
-          }}
+        <Username username={username} setUsername={setUsername} />
+        <Email email={email} setEmail={setEmail} />
+        <Password password={password} setPassword={setPassword} />
+        <ConfirmPassword
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
+          password={password}
         />
 
-        <Button
-          variant="contained"
-          type="submit"
-          sx={{
-            backgroundColor: "#ff1a1a",
-            color: "#fff",
-            fontWeight: "bold",
-            borderRadius: "20px",
-            border: "none",
-            outline: "none",
-            boxShadow: "none",
-            "&:hover": { backgroundColor: "#cc0000" },
-            "&:focus": { boxShadow: "0 0 8px rgba(255, 26, 26, 0.6)" },
-          }}
-        >
-          Sign Up
-        </Button>
+        <div className={styles.registerButton}>
+          <Button
+            variant="contained"
+            type="submit"
+            sx={{
+              backgroundColor: "#ff1a1a",
+              color: "#fff",
+              fontWeight: "bold",
+              borderRadius: "20px",
+              width: "100%",  
+              maxWidth: "250px", 
+              height: "45px", 
+              "&:hover": { backgroundColor: "#cc0000" },
+            }}
+          >
+            Sign Up
+          </Button>
+        </div>
+
         <p>
-          Have already an account?{" "}
-          
+          Have an account?{" "}
           <Link
             component={RouterLink}
             to="/login"
-            color="inherit"
-            sx={{
-              "&:hover": { color: "#ff1a1a" },
-            }}
+            sx={{ "&:hover": { color: "#ff1a1a" } }}
           >
             Login here
           </Link>
