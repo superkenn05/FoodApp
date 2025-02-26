@@ -6,39 +6,71 @@ import styles from "./foodlist.module.css";
 import Navbar from "./Navbar";
 import { useNavigate } from "react-router-dom";
 import db from "../firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, getDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 export default function FoodList() {
   const [sortOrder, setSortOrder] = useState("latest");
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItems, setCartItems] = useState([]);
-  const [food, setfood] = useState([]);
+  const [food, setFood] = useState([]);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(
-    () =>
-      onSnapshot(collection(db, "foodData"), (snapshot) =>
-        setfood(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
-      ),
-    []
-  );
-
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-    setCartItems(storedCart);
+    const unsubscribe = onSnapshot(collection(db, "foodData"), (snapshot) =>
+      setFood(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+    );
+    return () => unsubscribe();
   }, []);
 
-  const addToCart = (food) => {
-    let cart = JSON.parse(localStorage.getItem("cartItems")) || [];
-    const existingItemIndex = cart.findIndex((item) => item.name === food.name);
-    if (existingItemIndex !== -1) {
-      cart[existingItemIndex].quantity += 1;
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        await loadCart(currentUser.uid);
+      } else {
+        setUser(null);
+        setCartItems([]);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const loadCart = async (uid) => {
+    const cartRef = doc(db, "carts", uid);
+    const cartSnap = await getDoc(cartRef);
+    if (cartSnap.exists()) {
+      setCartItems(cartSnap.data().items || []);
     } else {
-      cart.push({ ...food, quantity: 1 });
+      setCartItems([]);
+    }
+  };
+
+  const saveCart = async (updatedCart) => {
+    if (!user) return;
+    const cartRef = doc(db, "carts", user.uid);
+    await setDoc(cartRef, { items: updatedCart }, { merge: true });
+  };
+
+  const addToCart = async (foodItem) => {
+    if (!user) {
+      alert("You must be logged in to add items to the cart.");
+      return;
     }
 
-    setCartItems(cart);
-    localStorage.setItem("cartItems", JSON.stringify(cart));
+    let updatedCart = [...cartItems];
+    const existingItemIndex = updatedCart.findIndex((item) => item.id === foodItem.id);
+    
+    if (existingItemIndex !== -1) {
+      updatedCart[existingItemIndex].quantity += 1;
+    } else {
+      updatedCart.push({ ...foodItem, quantity: 1 });
+    }
+
+    setCartItems(updatedCart);
+    await saveCart(updatedCart);
   };
 
   const goToCart = () => {

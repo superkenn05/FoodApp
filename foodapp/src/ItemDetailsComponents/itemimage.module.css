@@ -6,15 +6,15 @@
 
 .foodImage {
     position: relative;
-    width: 500px; /* Fixed width */
-    height: 300px; /* Fixed height */
+    width: 500px; 
+    height: 300px; 
     overflow: hidden;
-    background-color: #f0f0f0; /* Placeholder background */
+    background-color: #f0f0f0; 
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 10px;
-    border: 2px dashed #ccc; /* Para makita ang laki kahit walang image */
+    border: 2px dashed #ccc; 
 }
 
 .foodImage img {

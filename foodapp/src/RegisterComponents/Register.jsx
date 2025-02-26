@@ -42,7 +42,7 @@ export default function Register() {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-
+  
     if (!username || !email || !password || !confirmPassword) {
       showAlert("All fields are required!", "warning");
       return;
@@ -56,10 +56,7 @@ export default function Register() {
       return;
     }
     if (!/[A-Z]/.test(password)) {
-      showAlert(
-        "Password must contain at least one uppercase letter!",
-        "danger"
-      );
+      showAlert("Password must contain at least one uppercase letter!", "danger");
       return;
     }
     if (!/\d/.test(password)) {
@@ -67,10 +64,7 @@ export default function Register() {
       return;
     }
     if (!/[!@#$%^&*]/.test(password)) {
-      showAlert(
-        "Password must contain at least one special character (!@#$%^&*)!",
-        "danger"
-      );
+      showAlert("Password must contain at least one special character (!@#$%^&*)!", "danger");
       return;
     }
     if (password.length < 8) {
@@ -81,53 +75,20 @@ export default function Register() {
       showAlert("Passwords do not match!", "danger");
       return;
     }
-
+  
     try {
-      const usersRef = collection(db, "userInfo");
-
-      const userQuery = query(
-        usersRef,
-        where("username", "==", username.toLowerCase()),
-        where("email", "==", email.toLowerCase())
-      );
-
-      const userSnapshot = await getDocs(userQuery);
-
-      let usernameExists = false;
-      let emailExists = false;
-
-      userSnapshot.forEach((doc) => {
-        const userData = doc.data();
-        if (userData.username === username.toLowerCase()) {
-          usernameExists = true;
-        }
-        if (userData.email === email.toLowerCase()) {
-          emailExists = true;
-        }
-      });
-
-      if (usernameExists) {
-        showAlert("Username already exists!", "danger");
-        return;
-      }
-      if (emailExists) {
-        showAlert("Email already exists!", "danger");
-        return;
-      }
-
       const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email.toLowerCase(),
-        password
-      );
+      const userCredential = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
       const user = userCredential.user;
-
-      await setDoc(doc(db, "userInfo", user.uid), {
+  
+      const usersRef = collection(db, "userInfo");
+      await setDoc(doc(usersRef, user.uid), {
         username: username.toLowerCase(),
         email: email.toLowerCase(),
+        uid: user.uid,
+        createdAt: new Date(),
       });
-
+  
       showAlert("Registration successful!", "success");
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {

@@ -8,6 +8,9 @@ import styles from "./addtocartlist.module.css";
 import CartItemQuantity from "./CartItemQuantity";
 import CartItemPrice from "./CartItemPrice";
 import DeleteButton from "./DeleteButton";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import db from "../firebase";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "#2a2a2a",
@@ -27,71 +30,97 @@ const Item = styled(Paper)(({ theme }) => ({
 
 export default function BasicStack() {
   const [cartItems, setCartItems] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cartItems")) || [];
-    setCartItems(storedCart);
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        await loadCart(currentUser.uid);
+      } else {
+        setUser(null);
+        setCartItems([]);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const increaseQuantity = (index) => {
-    const updatedCart = [...cartItems];
-    updatedCart[index].quantity += 1;
-    setCartItems(updatedCart);
-    localStorage.setItem("cartItems", JSON.stringify(updatedCart));
-  };
-
-  const decreaseQuantity = (index) => {
-    const updatedCart = [...cartItems];
-    if (updatedCart[index].quantity > 1) {
-      updatedCart[index].quantity -= 1;
-      setCartItems(updatedCart);
-      localStorage.setItem("cartItems", JSON.stringify(updatedCart));
+  const loadCart = async (uid) => {
+    const cartRef = doc(db, "carts", uid);
+    const cartSnap = await getDoc(cartRef);
+    if (cartSnap.exists()) {
+      setCartItems(cartSnap.data().items || []);
+    } else {
+      setCartItems([]);
     }
   };
 
-  const removeItem = (index) => {
-    const updatedCart = cartItems.filter((_, i) => i !== index);
+  const saveCart = async (updatedCart) => {
+    if (!user) return;
+    const cartRef = doc(db, "carts", user.uid);
+    await setDoc(cartRef, { items: updatedCart }, { merge: true });
+  };
+
+  const increaseQuantity = async (index) => {
+    let updatedCart = [...cartItems];
+    updatedCart[index].quantity += 1;
     setCartItems(updatedCart);
-    localStorage.setItem("cartItems", JSON.stringify(updatedCart));
+    await saveCart(updatedCart);
+  };
+
+  const decreaseQuantity = async (index) => {
+    let updatedCart = [...cartItems];
+    if (updatedCart[index].quantity > 1) {
+      updatedCart[index].quantity -= 1;
+      setCartItems(updatedCart);
+      await saveCart(updatedCart);
+    }
+  };
+
+  const removeItem = async (index) => {
+    let updatedCart = cartItems.filter((_, i) => i !== index);
+    setCartItems(updatedCart);
+    await saveCart(updatedCart);
   };
 
   return (
-    <div >
+    <div>
       <AddToCartNavbar />
       <div className={styles["cart-container"]}>
-      <Box sx={{ width: "100%" }}>
-        {cartItems.length === 0 ? (
-          <Item className={styles["cart-empty"]}>Your cart is empty.</Item>
-        ) : (
-          cartItems.map((item, index) => (
-            <Item key={index} className={styles["cart-item"]}>
-              <img src={item.image} alt={item.name} />
-              <div className={styles["cart-item-info"]}>
-                <div className={styles["cart-item-name"]}>{item.name}</div>
-              </div>
-              <div className={styles["cart-item-details"]}></div>
-              <p className={styles["cart-item-variation"]}>
-                Variations: {item.variation || "Default"}
-              </p>
+        <Box sx={{ width: "100%" }}>
+          {cartItems.length === 0 ? (
+            <Item className={styles["cart-empty"]}>Your cart is empty.</Item>
+          ) : (
+            cartItems.map((item, index) => (
+              <Item key={index} className={styles["cart-item"]}>
+                <img src={item.image} alt={item.name} />
+                <div className={styles["cart-item-info"]}>
+                  <div className={styles["cart-item-name"]}>{item.name}</div>
+                </div>
+                <p className={styles["cart-item-variation"]}>
+                  Variations: {item.variation || "Default"}
+                </p>
 
-              <CartItemPrice price={item.price} oldPrice={item.oldPrice} />
+                <CartItemPrice price={item.price} oldPrice={item.oldPrice} />
 
-              <CartItemQuantity
-                quantity={item.quantity}
-                increase={() => increaseQuantity(index)}
-                decrease={() => decreaseQuantity(index)}
-              />
+                <CartItemQuantity
+                  quantity={item.quantity}
+                  increase={() => increaseQuantity(index)}
+                  decrease={() => decreaseQuantity(index)}
+                />
 
-              <p className={styles["cart-item-total"]}>
-                ₱{(item.price * item.quantity).toFixed(2)}
-              </p>
+                <p className={styles["cart-item-total"]}>
+                  ₱{(item.price * item.quantity).toFixed(2)}
+                </p>
 
-              <DeleteButton onDelete={() => removeItem(index)} />
-            </Item>
-          ))
-        )}
-      </Box>
-    </div>
+                <DeleteButton onDelete={() => removeItem(index)} />
+              </Item>
+            ))
+          )}
+        </Box>
+      </div>
     </div>
   );
 }
